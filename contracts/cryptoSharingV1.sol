@@ -2,8 +2,8 @@
 
 pragma solidity ^0.8.0;
 
-import "./interface/IERC9999.sol";
-import "./interface/IERC20.sol";
+import "https://github.com/cryptosharing/ERC9999/blob/main/contracts/interface/IERC9999.sol";
+import "https://github.com/cryptosharing/ERC9999/blob/main/contracts/interface/IERC20.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/utils/ERC721Holder.sol";
 
