@@ -100,7 +100,7 @@ contract cryptoSharingV1 is ICryptoSharingV1 , ERC721Holder, ERC721Enumerable{
         uint256 cur_price = (time - block.timestamp) * _prices[tokenId];
         _reserve[ownerOf(tokenId)] += cur_price;
         IERC20(token).transferFrom(msg.sender,address(this),cur_price);
-        IERC9999(NFTAddress).safeTransferUserFrom(address(this),msg.sender,tokenId);
+        IERCX(NFTAddress).safeTransferUserFrom(address(this),msg.sender,tokenId);
         emit RENTNFT(msg.sender,tokenId,time);
     }
     
