@@ -2,13 +2,14 @@
 
 pragma solidity ^0.8.0;
 
-import "./interface/IERC9999.sol";
+import "https://github.com/cryptosharing/ERCX/blob/main/contracts/interface/IERCX.sol";
 import "./interface/IERC20.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/token/ERC721/utils/ERC721Holder.sol";
+import "./interface/ICryptoSharingV1.sol";
+import "./ERC721Enumerable.sol";
+import "./ERC721Holder.sol";
 
 
-contract cryptoSharingV1 is ERC721Holder, ERC721Enumerable{
+contract cryptoSharingV1 is ICryptoSharingV1 , ERC721Holder, ERC721Enumerable{
     
     address public token;
     
@@ -26,8 +27,8 @@ contract cryptoSharingV1 is ERC721Holder, ERC721Enumerable{
     
     address public NFTAddress;
     
-    constructor (string memory _name,string memory _symbol) ERC721(_name, _symbol)  {
-        
+    constructor () {
+ 
         factory = msg.sender;
         
     }
@@ -46,6 +47,26 @@ contract cryptoSharingV1 is ERC721Holder, ERC721Enumerable{
         require(_isApprovedOrOwner(_msgSender(),tokenId),"");
         _prices[tokenId] = price;
     }
+
+    function getPrice(uint tokenId) public view returns(uint){
+        return _prices[tokenId];
+    }
+
+    function getRentTime(uint tokenId) public view returns(uint){
+        return _rentTime[tokenId];
+    }
+
+    function getRentLock(uint tokenId) public view returns(bool){
+        return _rentLock[tokenId];
+    }
+
+    function getReserve(address to) public view returns(uint){
+        return _reserve[to];
+    }
+
+    function getMaxRentTime(uint tokenId) public view returns(uint){
+        return _maxRentTime[tokenId];
+    }
     
     function initialize(address _nftAddress, address _token) external{
         require(msg.sender == factory ," FORBIDDEN");
@@ -60,9 +81,10 @@ contract cryptoSharingV1 is ERC721Holder, ERC721Enumerable{
         _rentTime[tokenId] = block.timestamp;
         super._mint(msg.sender , tokenId);
         IERC721(NFTAddress).safeTransferFrom(msg.sender,address(this),tokenId);
+        emit LENDNFT(msg.sender,tokenId,maxRentTime,price);
     }
     
-    function withdarwBalance(uint256 amount) external{
+    function withdrawBalance(uint256 amount) external{
         require(amount <= _reserve[msg.sender],"Insuff amount");
         _reserve[msg.sender] -= amount;
         IERC20(token).transfer(msg.sender,amount);
@@ -70,7 +92,7 @@ contract cryptoSharingV1 is ERC721Holder, ERC721Enumerable{
     
     function rentNFT(uint256 tokenId,uint256 time) external {
         require(_exists(tokenId),"ERC721Metadata: URI query for nonexistent token");
-        require(_rentLock[tokenId]==false,"NFT is lock");
+        require(_rentLock[tokenId] == false,"NFT is lock");
         require(time > _rentTime[tokenId],"ERROR time");
         require(time < _maxRentTime[tokenId] ,"ERROE Time");
         require(_maxRentTime[tokenId] > block.timestamp,"ERROR maxtime");
@@ -79,15 +101,14 @@ contract cryptoSharingV1 is ERC721Holder, ERC721Enumerable{
         _reserve[ownerOf(tokenId)] += cur_price;
         IERC20(token).transferFrom(msg.sender,address(this),cur_price);
         IERC9999(NFTAddress).safeTransferUserFrom(address(this),msg.sender,tokenId);
+        emit RENTNFT(msg.sender,tokenId,time);
     }
     
-    function withDrawNFT(uint256 tokenId) external{
+    function withdrawNFT(uint256 tokenId) external{
         require(_isApprovedOrOwner(_msgSender(),tokenId),"");
         require(block.timestamp > _rentTime[tokenId],"The NFT is Renting");
         super._burn(tokenId);
         IERC721(NFTAddress).safeTransferFrom(address(this),msg.sender,tokenId);
     }
-
-
     
 }
